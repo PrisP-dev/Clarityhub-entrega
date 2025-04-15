@@ -1,0 +1,342 @@
+<mat-toolbar class="cabecera">
+  <span>ClarityHub - Gestor de Tareas</span>
+  <span class="spacer"></span>
+  <button mat-icon-button (click)="toggleModoOscuro()">
+    <mat-icon>{{ modoOscuro ? "dark_mode" : "light_mode" }}</mat-icon>
+  </button>
+</mat-toolbar>
+
+<div class="container">
+  <!-- Barra superior -->
+  <div class="barra-superior">
+    <!-- Botón crear para abrir/cerrar el formulario -->
+    <div class="crear-tarea-container">
+      <button
+        mat-raised-button
+        color="accent"
+        class="boton-crear-tarea"
+        (click)="toggleFormulario()"
+      >
+        {{ mostrarFormulario ? "Cancelar" : "Crear Tarea" }}
+      </button>
+    </div>
+
+    <!-- Filtros -->
+    <div class="filtro-container">
+      <button
+        mat-button
+        (click)="filtro = 'todas'"
+        [class.filtro-activo]="filtro === 'todas'"
+      >
+        Todas
+      </button>
+      <button
+        mat-button
+        (click)="filtro = 'pendientes'"
+        [class.filtro-activo]="filtro === 'pendientes'"
+      >
+        Pendientes
+      </button>
+      <button
+        mat-button
+        (click)="filtro = 'completadas'"
+        [class.filtro-activo]="filtro === 'completadas'"
+      >
+        Completadas
+      </button>
+      <mat-form-field appearance="outline" class="filtro-container">
+        <mat-label>Filtrar por Categoría</mat-label>
+        <mat-select [(ngModel)]="filtroCategoria">
+          <mat-option value="">Todas</mat-option>
+          <mat-option *ngFor="let cat of categorias" [value]="cat">{{
+            cat
+          }}</mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="filtro-container">
+        <mat-label>Ordenar por</mat-label>
+        <mat-select [(ngModel)]="orden">
+          <mat-option value="fecha">Fecha de creación</mat-option>
+          <mat-option value="prioridad">Prioridad</mat-option>
+        </mat-select>
+      </mat-form-field>
+    </div>
+
+    <!--Botón para cambiar entre modos-->
+    <div class="modo-vista-container">
+      <button mat-button (click)="toggleModoVista()">
+        <mat-icon>{{ modoVista === "lista" ? "grid_view" : "list" }}</mat-icon>
+        {{ modoVista === "lista" ? "Cuadrícula" : "Lista" }}
+      </button>
+    </div>
+  </div>
+
+  <!-- Formulario para crear tarea -->
+  <div *ngIf="mostrarFormulario" class="formulario-tarea">
+    <div class="formulario-contenido">
+      <mat-form-field appearance="outline">
+        <mat-label>Título</mat-label>
+        <input matInput [(ngModel)]="nuevaTarea" />
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Prioridad</mat-label>
+        <mat-select [(ngModel)]="prioridadSeleccionada">
+          <mat-option value="alta">Alta</mat-option>
+          <mat-option value="media">Media</mat-option>
+          <mat-option value="baja">Baja</mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <!-- Campo de Fecha de Recordatorio -->
+      <mat-form-field appearance="outline">
+        <mat-label>Fecha de Recordatorio</mat-label>
+        <input
+          matInput
+          [matDatepicker]="recordatorioPicker"
+          [(ngModel)]="nuevaFechaRecordatorio"
+        />
+        <mat-datepicker-toggle
+          matSuffix
+          [for]="recordatorioPicker"
+        ></mat-datepicker-toggle>
+        <mat-datepicker #recordatorioPicker></mat-datepicker>
+      </mat-form-field>
+
+      <!-- Campo de Hora de Recordatorio -->
+      <mat-form-field appearance="outline">
+        <mat-label>Hora</mat-label>
+        <input matInput type="time" [(ngModel)]="nuevaHoraRecordatorio" />
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Categoría</mat-label>
+        <mat-select [(ngModel)]="categoriaSeleccionada">
+          <mat-option *ngFor="let cat of categorias" [value]="cat">{{
+            cat
+          }}</mat-option>
+        </mat-select>
+      </mat-form-field>
+    </div>
+
+    <!-- Botones -->
+    <div class="botones-formulario">
+      <button mat-button color="warn" (click)="toggleFormulario()">
+        Cancelar
+      </button>
+      <button
+        mat-button
+        color="primary"
+        (click)="agregarTarea()"
+        [disabled]="!nuevaTarea.trim()"
+      >
+        Añadir
+      </button>
+    </div>
+  </div>
+
+  <!-- Contenedor de tarjetas -->
+  <div class="tareas-container" [ngClass]="modoVista">
+    <mat-card
+      *ngFor="let tarea of getTareasOrdenadas(); let i = index"
+      class="tarea-card"
+      [ngClass]="[tarea.prioridad, tarea.completado ? 'completada' : '']"
+    >
+      <!-- Contenido de la tarea -->
+      <div class="tarea-content">
+        <mat-checkbox
+          [(ngModel)]="tarea.completado"
+          (change)="guardarTareas()"
+        ></mat-checkbox>
+        <input
+          *ngIf="editandoIndex === i"
+          [(ngModel)]="textoEditado"
+          class="input-edicion"
+        />
+        <span *ngIf="editandoIndex !== i" class="tarea-texto">{{
+          tarea.texto
+        }}</span>
+      </div>
+
+      <!-- Subtareas -->
+      <div class="subtareas-container">
+        <div
+          *ngFor="let sub of tarea.subtareas; let subIndex = index"
+          class="subtarea-item"
+        >
+          <mat-checkbox
+            [checked]="sub.completado"
+            (change)="toggleSubtarea(i, subIndex)"
+          ></mat-checkbox>
+          <input
+            *ngIf="editandoSubtareas[i] === subIndex"
+            [(ngModel)]="textoEditadoSubtarea"
+            class="input-edicion"
+          />
+          <span
+            *ngIf="editandoSubtareas[i] !== subIndex"
+            class="subtarea-texto"
+            >{{ sub.texto }}</span
+          >
+
+          <div class="botones-subtarea">
+            <button
+              *ngIf="editandoSubtareas[i] !== subIndex"
+              mat-icon-button
+              color="accent"
+              (click)="iniciarEdicionSubtarea(i, subIndex)"
+            >
+              <mat-icon>edit</mat-icon>
+            </button>
+            <button
+              *ngIf="editandoSubtareas[i] === subIndex"
+              mat-icon-button
+              color="primary"
+              (click)="guardarEdicionSubtarea(i, subIndex)"
+            >
+              <mat-icon>check</mat-icon>
+            </button>
+            <button
+              *ngIf="editandoSubtareas[i] === subIndex"
+              mat-icon-button
+              color="warn"
+              (click)="cancelarEdicionSubtarea(i)"
+            >
+              <mat-icon>close</mat-icon>
+            </button>
+            <button
+              mat-icon-button
+              color="warn"
+              (click)="eliminarSubtarea(i, subIndex)"
+            >
+              <mat-icon>delete</mat-icon>
+            </button>
+          </div>
+        </div>
+
+        <!-- Botón para mostrar/ocultar el input de subtareas -->
+        <button
+          mat-icon-button
+          color="primary"
+          (click)="toggleInputSubtarea(i)"
+        >
+          <mat-icon>{{ mostrarInputSubtarea[i] ? "remove" : "add" }}</mat-icon>
+        </button>
+
+        <!-- Input para nueva subtarea -->
+        <div class="nueva-subtarea" *ngIf="mostrarInputSubtarea[i]">
+          <mat-form-field appearance="outline">
+            <mat-label>Nueva Subtarea</mat-label>
+            <input
+              matInput
+              [(ngModel)]="nuevasSubtareas[i]"
+              (keyup.enter)="agregarSubtarea(i)"
+            />
+          </mat-form-field>
+          <button mat-icon-button color="primary" (click)="agregarSubtarea(i)">
+            <mat-icon>check</mat-icon>
+          </button>
+        </div>
+      </div>
+
+      <!-- Sección de botones alineados abajo -->
+      <div class="botones-inferiores">
+        <!-- Iconos de recordatorio y categoría -->
+        <div class="iconos-inferiores">
+          <!-- Botón de Recordatorio -->
+          <button
+            mat-icon-button
+            (click)="toggleCampo(i, 'fecha')"
+            [matTooltip]="getTooltipFecha(tarea.fechaRecordatorio)"
+            matTooltipPosition="above"
+          >
+            <mat-icon>schedule</mat-icon>
+          </button>
+
+          <!-- Botón de Categoría (Abre el selector de categoría) -->
+          <button
+            mat-icon-button
+            matTooltip="{{ tarea.categoria }}"
+            (click)="toggleCampo(i, 'categoria')"
+          >
+            <mat-icon>{{
+              iconosCategorias[tarea.categoria] || "category"
+            }}</mat-icon>
+          </button>
+        </div>
+
+        <!-- Botones de edición y eliminación -->
+        <div class="botones-acciones">
+          <button
+            *ngIf="editandoIndex !== i"
+            mat-icon-button
+            color="accent"
+            (click)="iniciarEdicion(i)"
+          >
+            <mat-icon>edit</mat-icon>
+          </button>
+          <button
+            *ngIf="editandoIndex === i"
+            mat-icon-button
+            color="primary"
+            (click)="guardarEdicion(i)"
+          >
+            <mat-icon>check</mat-icon>
+          </button>
+          <button
+            *ngIf="editandoIndex === i"
+            mat-icon-button
+            color="warn"
+            (click)="cancelarEdicion()"
+          >
+            <mat-icon>close</mat-icon>
+          </button>
+          <button mat-icon-button color="warn" (click)="eliminarTarea(i)">
+            <mat-icon>delete</mat-icon>
+          </button>
+        </div>
+      </div>
+
+      <!-- Input oculto de fecha (se activa al hacer clic en el botón de recordatorio) -->
+      <mat-form-field *ngIf="esCampoActivo(i, 'fecha')" appearance="outline">
+        <mat-label>Fecha Recordatorio</mat-label>
+        <input
+          matInput
+          type="datetime-local"
+          [value]="
+            tarea.fechaRecordatorio
+              ? (tarea.fechaRecordatorio | date : 'yyyy-MM-ddTHH:mm')
+              : ''
+          "
+          (input)="cambiarFechaRecordatorio(i, $event)"
+        />
+        <button
+          mat-icon-button
+          matSuffix
+          aria-label="Borrar recordatorio"
+          (click)="eliminarFechaRecordatorio(i)"
+          style="opacity: 0.6; margin-left: 4px"
+        >
+          <mat-icon style="font-size: 18px">clear</mat-icon>
+        </button>
+      </mat-form-field>
+
+      <!-- Selección de categoría (oculta por defecto) -->
+      <mat-form-field
+        *ngIf="esCampoActivo(i, 'categoria')"
+        appearance="outline"
+      >
+        <mat-label>Selecciona Categoría</mat-label>
+        <mat-select
+          [(ngModel)]="tarea.categoria"
+          (selectionChange)="guardarCategoria(i)"
+        >
+          <mat-option *ngFor="let cat of categorias" [value]="cat">
+            {{ cat }}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+    </mat-card>
+  </div>
+</div>

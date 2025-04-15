@@ -1,0 +1,64 @@
+/* You can add global styles to this file, and also import other style files */
+
+html,
+body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  font-family: "Roboto", "Helvetica Neue", sans-serif;
+  font-weight: 400;
+  font-size: 15px;
+  line-height: 1.5;
+  background-color: #f0f2f5;
+}
+
+body.modo-oscuro {
+  background-color: #202020;
+  color: #fafafa;
+
+  // Selectores personalizados
+  .mat-mdc-select-panel,
+  .mat-mdc-option {
+    background-color: #2a2a2a !important;
+    color: #ffffff !important;
+  }
+
+  .mat-mdc-option:hover {
+    background-color: #424242 !important;
+  }
+
+  .mat-mdc-option.mat-mdc-option-active {
+    background-color: #512da8 !important;
+    color: white !important;
+  }
+
+  .mat-mdc-select-value,
+  .mat-mdc-select-arrow {
+    color: #e0e0e0 !important;
+  }
+
+  // Datepicker de Angular Material
+  .mat-datepicker-content,
+  .mat-calendar {
+    background-color: #2a2a2a !important;
+    color: #fafafa !important;
+  }
+
+  .mat-calendar-body-cell-content {
+    color: #fafafa !important;
+  }
+
+  .mat-calendar-body-selected,
+  .mat-calendar-body-active {
+    background-color: #bb86fc !important;
+    color: #fff !important;
+  }
+
+  .mat-calendar-table-header th {
+    color: #e0e0e0 !important;
+  }
+
+  .mat-datepicker-toggle-active {
+    color: #bb86fc !important;
+  }
+}
