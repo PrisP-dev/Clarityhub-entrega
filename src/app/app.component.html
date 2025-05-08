@@ -143,6 +143,11 @@
       class="tarea-card"
       [ngClass]="[tarea.prioridad, tarea.completado ? 'completada' : '']"
     >
+      <!-- Etiqueta de Prioridad -->
+      <div class="prioridad-label">
+        Prioridad {{ tarea.prioridad | titlecase }}
+      </div>
+
       <!-- Contenido de la tarea -->
       <div class="tarea-content">
         <mat-checkbox

@@ -195,6 +195,27 @@ mat-label {
   font-weight: bold;
 }
 
+.prioridad-label {
+  font-size: 11px;
+  font-weight: 500;
+  padding: 4px 8px;
+  border-radius: 4px;
+  margin-bottom: 5px;
+  display: inline-block;
+}
+
+.alta .prioridad-label {
+  color: #d32f2f;
+}
+
+.media .prioridad-label {
+  color: #f57c00;
+}
+
+.baja .prioridad-label {
+  color: #388e3c;
+}
+
 /* Cambios en el modo oscuro */
 :host-context(body.modo-oscuro) {
   background-color: #202020;
@@ -276,6 +297,18 @@ mat-label {
 
   .baja {
     border-color: #81c784;
+  }
+
+  .alta .prioridad-label {
+    color: #e57373;
+  }
+
+  .media .prioridad-label {
+    color: #ffb74d;
+  }
+
+  .baja .prioridad-label {
+    color: #81c784;
   }
 
   * {
